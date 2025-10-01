@@ -1,0 +1,31 @@
+﻿using PaymentService.Data;
+using PaymentService.Interfaces;
+using PaymentService.Models;
+
+namespace PaymentService.Repository
+{
+    public class PaymentRepository : IPaymentRepository
+    {
+        private readonly PaymentDbContext _context;
+
+        public PaymentRepository(PaymentDbContext context) => _context = context;
+
+        public async Task<IEnumerable<Payment>> GetAllAsync() =>
+            await _context.Payments.ToListAsync();
+
+        public async Task<Payment?> GetByIdAsync(Guid id) =>
+            await _context.Payments.FindAsync(id);
+
+        public async Task AddAsync(Payment payment)
+        {
+            _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Payment payment)
+        {
+            _context.Payments.Update(payment);
+            await _context.SaveChangesAsync();
+        }
+    }
+}
