@@ -22,9 +22,11 @@
 
 //app.Run();
 
+using Microsoft.EntityFrameworkCore;
 using PaymentService.Data;
 using PaymentService.Interfaces;
 using PaymentService.Repository;
+using PaymentService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +38,8 @@ builder.Services.AddDbContext<PaymentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
+//builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentService, PaymentService.Services.PaymentService>();
 
 // HttpClient para chamar Users e Games
 builder.Services.AddHttpClient();

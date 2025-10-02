@@ -1,4 +1,7 @@
-﻿using PaymentService.Data;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PaymentService.Data;
 using PaymentService.Interfaces;
 using PaymentService.Models;
 
@@ -10,8 +13,14 @@ namespace PaymentService.Repository
 
         public PaymentRepository(PaymentDbContext context) => _context = context;
 
-        public async Task<IEnumerable<Payment>> GetAllAsync() =>
-            await _context.Payments.ToListAsync();
+        public async Task<IEnumerable<Payment>> GetAllAsync() => 
+            (IEnumerable<Payment>)await _context.Payments.FindAsync();
+
+        //public async Task<ActionResult<IEnumerable<Payment>>> GetAllAsync()
+        //{
+        //    var getAllAsync = await _context.Payments.FindAsync();
+        //    return getAllAsync;
+        //}
 
         public async Task<Payment?> GetByIdAsync(Guid id) =>
             await _context.Payments.FindAsync(id);
@@ -26,6 +35,16 @@ namespace PaymentService.Repository
         {
             _context.Payments.Update(payment);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var payment = await GetByIdAsync(id);
+            if (payment != null)
+            {
+                _context.Payments.Remove(payment);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
