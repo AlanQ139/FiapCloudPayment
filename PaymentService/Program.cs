@@ -1,26 +1,3 @@
-//var builder = WebApplication.CreateBuilder(args);
-
-//// Add services to the container.
-
-//builder.Services.AddControllers();
-//// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-//builder.Services.AddOpenApi();
-
-//var app = builder.Build();
-
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.MapOpenApi();
-//}
-
-//app.UseHttpsRedirection();
-
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();
 
 using Microsoft.EntityFrameworkCore;
 using PaymentService.Data;
@@ -44,7 +21,27 @@ builder.Services.AddScoped<IPaymentService, PaymentService.Services.PaymentServi
 // HttpClient para chamar Users e Games
 builder.Services.AddHttpClient();
 
+//para o Erro de Cors
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+//para aplicar as migrations na primeira vez que subir o container do Docker
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+    dbContext.Database.Migrate();
+}
+
+app.UseCors();
 
 app.UseSwagger();
 app.UseSwaggerUI();
