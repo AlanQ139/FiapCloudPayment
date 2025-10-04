@@ -9,9 +9,9 @@
             _httpClient = httpClient;
         }
 
-        public async Task<GameDto?> GetGameByIdAsync(Guid id)
+        public async Task<GameDto?> GetGameByIdAsync(Guid gameId)
         {
-            var response = await _httpClient.GetAsync($"/api/Games/{id}");
+            var response = await _httpClient.GetAsync($"/api/Games/{gameId}");
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized) return null; // ou lançar um erro customizado
             response.EnsureSuccessStatusCode();

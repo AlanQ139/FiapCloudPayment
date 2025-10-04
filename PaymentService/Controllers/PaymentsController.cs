@@ -20,9 +20,17 @@ namespace PaymentService.Controllers
                 var result = await _service.ProcessPaymentAsync(dto);
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException ex) // ex: usuário ou jogo não encontrado
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex) // ex: pagamento inválido
             {
                 return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex) // fallback para erros inesperados
+            {
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
@@ -32,5 +40,10 @@ namespace PaymentService.Controllers
             var payment = await _service.GetByIdAsync(id);
             return payment == null ? NotFound() : Ok(payment);
         }
+    }
+    public class PaymentRequest
+    {
+        public Guid UserId { get; set; }
+        public Guid GameId { get; set; }
     }
 }
