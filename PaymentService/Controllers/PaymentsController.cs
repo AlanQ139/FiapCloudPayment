@@ -40,6 +40,13 @@ namespace PaymentService.Controllers
             var payment = await _service.GetByIdAsync(id);
             return payment == null ? NotFound() : Ok(payment);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var payments = await _service.GetAllAsync();
+            return Ok(payments);
+        }
     }
     public class PaymentRequest
     {

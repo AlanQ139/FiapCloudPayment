@@ -10,18 +10,11 @@ namespace PaymentService.Repository
     public class PaymentRepository : IPaymentRepository
     {
         private readonly PaymentDbContext _context;
-
         public PaymentRepository(PaymentDbContext context) => _context = context;
-
-        public async Task<IEnumerable<Payment>> GetAllAsync() => 
-            (IEnumerable<Payment>)await _context.Payments.FindAsync();
-
-        //public async Task<ActionResult<IEnumerable<Payment>>> GetAllAsync()
-        //{
-        //    var getAllAsync = await _context.Payments.FindAsync();
-        //    return getAllAsync;
-        //}
-
+        public async Task<IEnumerable<Payment>> GetAllAsync()
+        {
+            return await _context.Payments.ToListAsync();
+        }
         public async Task<Payment?> GetByIdAsync(Guid id) =>
             await _context.Payments.FindAsync(id);
 

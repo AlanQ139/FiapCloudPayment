@@ -6,5 +6,6 @@ namespace PaymentService.Interfaces
     {
         Task<PaymentResponseDto> ProcessPaymentAsync(PaymentRequestDto dto);
         Task<PaymentResponseDto?> GetByIdAsync(Guid id);
+        Task<IEnumerable<PaymentResponseDto>> GetAllAsync();
     }
 }
