@@ -5,6 +5,7 @@ using PaymentService.Data;
 using PaymentService.Interfaces;
 using PaymentService.Repository;
 using PaymentService.Services;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,10 +98,33 @@ builder.Services.AddHttpClient<GameClient>(c =>
 var app = builder.Build();
 
 //para aplicar as migrations na primeira vez que subir o container do Docker
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+//    dbContext.Database.Migrate();
+//}
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-    dbContext.Database.Migrate();
+    var db = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+    int retries = 0;
+    const int maxRetries = 10;
+
+    while (true)
+    {
+        try
+        {
+            db.Database.Migrate();
+            break;
+        }
+        catch (Exception ex)
+        {
+            retries++;
+            if (retries >= maxRetries)
+                throw;
+            Console.WriteLine($"Banco ainda não pronto... tentando novamente ({retries}/{maxRetries})");
+            Thread.Sleep(3000);
+        }
+    }
 }
 
 app.UseCors();
