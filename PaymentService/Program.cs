@@ -5,7 +5,8 @@ using PaymentService.Data;
 using PaymentService.Interfaces;
 using PaymentService.Repository;
 using PaymentService.Services;
-using System;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,6 +60,9 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+// habilita o Application Insights
+builder.Services.AddApplicationInsightsTelemetry();
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

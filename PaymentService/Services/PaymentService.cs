@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Abstractions;
 using PaymentService.DTOs;
 using PaymentService.Interfaces;
 using PaymentService.Models;
@@ -10,11 +12,13 @@ namespace PaymentService.Services
         private readonly IPaymentRepository _repo;
         private readonly UserClient _userClient;
         private readonly GameClient _gameClient;
-        public PaymentService(IPaymentRepository repo, UserClient userClient, GameClient gameClient)
+        private readonly TelemetryClient _telemetry;
+        public PaymentService(IPaymentRepository repo, UserClient userClient, GameClient gameClient, TelemetryClient telemetry)
         {
             _repo = repo;
             _userClient = userClient;
             _gameClient = gameClient;
+            _telemetry = telemetry;
         }
         public async Task<PaymentResponseDto> ProcessPaymentAsync(PaymentRequestDto dto)
         {
@@ -48,6 +52,17 @@ namespace PaymentService.Services
                 Status = payment.Status,
                 CreatedAt = payment.CreatedAt
             };
+
+            // registrar evento de negócio no Application Insights
+            _telemetry.TrackEvent("PaymentCompleted", new Dictionary<string, string>
+            {
+                { "PaymentId", payment.Id.ToString() },
+                { "UserId", payment.UserId.ToString() },
+                { "GameId", payment.GameId.ToString() },
+                { "Amount", payment.Amount.ToString() },
+                { "Status", payment.Status },
+                { "CreatedAt", payment.CreatedAt.ToString("o") }
+            });
         }
         public async Task<PaymentResponseDto?> GetByIdAsync(Guid id)
         {
