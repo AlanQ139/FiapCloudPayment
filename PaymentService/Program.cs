@@ -80,7 +80,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // HttpClient para chamar Users e Games
-//builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<BearerTokenHandler>();
 
@@ -98,11 +97,7 @@ builder.Services.AddHttpClient<GameClient>(c =>
 var app = builder.Build();
 
 //para aplicar as migrations na primeira vez que subir o container do Docker
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-//    dbContext.Database.Migrate();
-//}
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
