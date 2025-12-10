@@ -1,23 +1,26 @@
+using MassTransit;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PaymentService.Consumers;
 using PaymentService.Data;
 using PaymentService.Interfaces;
 using PaymentService.Repository;
 using PaymentService.Services;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ================== CONTROLLERS & SWAGGER ==================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "PaymentService API", Version = "v1" });
 
-    // Configuração de autenticação JWT no Swagger
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -44,13 +47,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// ================== BANCO ==================
 builder.Services.AddDbContext<PaymentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService.Services.PaymentService>();
 
-//para o Erro de Cors
+// ================== CORS ==================
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -61,10 +65,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// habilita o Application Insights
+// ================== APPLICATION INSIGHTS ==================
 builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.AddSingleton<ITelemetryInitializer, CloudRoleTelemetryInitializer>();
 
-// JWT Authentication
+// ================== AUTH / JWT ==================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -83,7 +88,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// HttpClient para chamar Users e Games
+// ================== HTTP CLIENTS ==================
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<BearerTokenHandler>();
 
@@ -97,6 +102,27 @@ builder.Services.AddHttpClient<GameClient>(c =>
     c.BaseAddress = new Uri(builder.Configuration["GAMES_URL"] ?? "https://localhost:7093");
 }).AddHttpMessageHandler<BearerTokenHandler>();
 
+// ================== MASSTRANSIT / RABBITMQ ==================
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<GamePurchasedConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"], "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"]!);
+            h.Password(builder.Configuration["RabbitMQ:Password"]!);
+        });
+
+        cfg.ConfigureEndpoints(context);
+
+        cfg.PrefetchCount = 10;
+    });
+});
+
+// ================== HEALTHCHECK (somente registro) ==================
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -126,11 +152,36 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseCors();
-app.UseSwagger();
-app.UseSwaggerUI();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+app.MapHealthChecks("/health");
+
 app.Run();
+
+// Telemetry initializer
+public class CloudRoleTelemetryInitializer : ITelemetryInitializer
+{
+    public void Initialize(ITelemetry telemetry)
+    {
+        telemetry.Context.Cloud.RoleName = "PaymentService";
+    }
+}
+
+//app.UseCors();
+//app.UseSwagger();
+//app.UseSwaggerUI();
+//app.UseRouting();
+//app.UseAuthentication();
+//app.UseAuthorization();
+//app.MapControllers();
+//app.Run();
