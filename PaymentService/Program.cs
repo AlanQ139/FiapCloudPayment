@@ -92,14 +92,26 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<BearerTokenHandler>();
 
+//builder.Services.AddHttpClient<UserClient>(c =>
+//{
+//    c.BaseAddress = new Uri(builder.Configuration["USERS_URL"] ?? "https://localhost:7126");
+//}).AddHttpMessageHandler<BearerTokenHandler>();
+
+//builder.Services.AddHttpClient<GameClient>(c =>
+//{
+//    c.BaseAddress = new Uri(builder.Configuration["GAMES_URL"] ?? "https://localhost:7093");
+//}).AddHttpMessageHandler<BearerTokenHandler>();
+
 builder.Services.AddHttpClient<UserClient>(c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["USERS_URL"] ?? "https://localhost:7126");
+    c.DefaultRequestHeaders.Add("X-Internal-Call", "true");
 }).AddHttpMessageHandler<BearerTokenHandler>();
 
 builder.Services.AddHttpClient<GameClient>(c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["GAMES_URL"] ?? "https://localhost:7093");
+    c.DefaultRequestHeaders.Add("X-Internal-Call", "true");
 }).AddHttpMessageHandler<BearerTokenHandler>();
 
 // ================== MASSTRANSIT / RABBITMQ ==================
@@ -176,12 +188,3 @@ public class CloudRoleTelemetryInitializer : ITelemetryInitializer
         telemetry.Context.Cloud.RoleName = "PaymentService";
     }
 }
-
-//app.UseCors();
-//app.UseSwagger();
-//app.UseSwaggerUI();
-//app.UseRouting();
-//app.UseAuthentication();
-//app.UseAuthorization();
-//app.MapControllers();
-//app.Run();

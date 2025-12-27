@@ -26,7 +26,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\SharedMessages\SharedMessages.csproj" />
+    <ProjectReference Include="../SharedMessages/SharedMessages.csproj" />
   </ItemGroup>
 
 </Project>
