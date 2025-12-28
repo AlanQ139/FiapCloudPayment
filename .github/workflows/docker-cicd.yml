@@ -18,7 +18,14 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
-
+    
+    - name: Configurar acesso ao GitHub Packages
+      run: dotnet nuget add source https://nuget.pkg.github.com/AlanQ139/index.json \
+        --name github \
+        --username AlanQ139 \
+        --password ${{ secrets.GITHUB_TOKEN }} \
+        --store-password-in-clear-text
+    
     - name: Restaurar dependências
       run: dotnet restore
 

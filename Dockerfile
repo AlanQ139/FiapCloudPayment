@@ -2,14 +2,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# copia csproj e nuget.config
 COPY FiapCloudPayment/PaymentService/PaymentService.csproj PaymentService/
-COPY SharedMessages/SharedMessages.csproj SharedMessages/
+COPY FiapCloudPayment/nuget.config .
 
+# restore
 RUN dotnet restore PaymentService/PaymentService.csproj
 
+# copia o código
 COPY FiapCloudPayment/PaymentService/. PaymentService/
-COPY SharedMessages/. SharedMessages/
 
+# publish
 RUN dotnet publish PaymentService/PaymentService.csproj -c Release -o /app/publish
 
 # runtime

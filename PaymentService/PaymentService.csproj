@@ -26,7 +26,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="../SharedMessages/SharedMessages.csproj" />
+    <PackageReference Include="FiapCloud.SharedMessages" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
