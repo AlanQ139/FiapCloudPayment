@@ -1,9 +1,7 @@
-name: Build and Push Docker Image - Games
+name: Build and Push Docker Image - Payments
 
 on:
   push:
-    branches: [ "main" ]  # dispara quando você faz push na main
-  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -14,27 +12,6 @@ jobs:
     - name: Checkout do código
       uses: actions/checkout@v4
 
-    - name: Configurar .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-    
-    - name: Configurar acesso ao GitHub Packages
-      run: dotnet nuget add source https://nuget.pkg.github.com/AlanQ139/index.json \
-        --name github \
-        --username AlanQ139 \
-        --password ${{ secrets.GITHUB_TOKEN }} \
-        --store-password-in-clear-text
-    
-    - name: Restaurar dependências
-      run: dotnet restore
-
-    - name: Build do projeto
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Rodar testes 
-      run: dotnet test --no-build --verbosity normal
-
     - name: Login no Docker Hub
       uses: docker/login-action@v3
       with:
@@ -42,7 +19,12 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build da imagem Docker
-      run: docker build -t alqueiroz/payments:latest -t alqueiroz/payments:1.0 .
+      run: |
+        docker build \
+          --build-arg GH_USERNAME=${{ secrets.GH_PACKAGES_USERNAME }} \
+          --build-arg GH_TOKEN=${{ secrets.GH_PACKAGES_TOKEN }} \
+          -t alqueiroz/payments:latest \
+          -t alqueiroz/payments:1.0 .
 
     - name: Push da imagem no Docker Hub
       run: |
